@@ -16,6 +16,10 @@ app.get("/", (req, res) => {
     res.send("✨ Opal Spaces API is running!");
 });
 
+const authRoutes = require("./routes/auth");
+app.use("/api/auth", authRoutes);
+
+
 app.listen(PORT, () => {
-    console.log(`🚀 Server is running on http://localhost:${PORT} in ${env} mode`);
+    console.log(`Server is running on http://localhost:${PORT} in ${env} mode`);
 });
