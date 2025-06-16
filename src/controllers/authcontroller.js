@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
 const prisma = require('../utils/prisma');
-import cookie from 'cookie-parser'; 
+const { generateAccessToken, generateRefreshToken, verifyAccessToken } = require('../utils/jwt');
+
+
 
 const registerUser = async (req, res) => {
   const { firstName, lastName, email, role, password } = req.body;
@@ -59,7 +61,7 @@ const registerUser = async (req, res) => {
     })
     .json({
       message: 'User registered successfully',
-      accessToken, // still sent in body, or you can move this to cookie too
+      accessToken,
       user: {
         id: newUser.id,
         firstName: newUser.firstName,
