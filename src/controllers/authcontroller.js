@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const prisma = require('../utils/prisma');
+const jwt = require('jsonwebtoken');
 const { generateAccessToken, generateRefreshToken, verifyAccessToken } = require('../utils/jwt');
 
 
@@ -17,7 +18,7 @@ const registerUser = async (req, res) => {
     });
 
     if (existingUser) {
-      res.status().json({ message: 'User already exists with this email' })
+      return res.status(409).json({ message: 'User already exists with this email' })
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -37,13 +38,13 @@ const registerUser = async (req, res) => {
 
     const accessToken = jwt.sign(
       { id: newUser.id, email: newUser.email },
-      process.env.JWT_SECRET,
+      process.env.JWT_ACCESS_SECRET,
       { expiresIn: '15m' }
     );
 
     const refreshToken = jwt.sign(
       { id: newUser.id },
-      process.env.REFRESH_TOKEN_SECRET,
+      process.env.JWT_REFRESH_SECRET,
       { expiresIn: '7d' },
     );
 
@@ -89,7 +90,7 @@ const loginUser = async (req, res) => {
     });
 
     if (!user) {
-      res.status(404).json({ message: "User not found"})
+      return res.status(404).json({ message: "User not found"})
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -105,7 +106,7 @@ const loginUser = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
     });
 
     return res.status(200).json({
@@ -118,7 +119,7 @@ const loginUser = async (req, res) => {
         role: user.role,
       },
     });
-    
+
   } catch (error) {
 
     console.error('Login error:', error);
@@ -126,4 +127,30 @@ const loginUser = async (req, res) => {
   }
   res.status(200).json({ message: "User logged in (placeholder)" });
 };
+
+const logoutUser = async (req, res) => {
+  try {
+
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken: null },
+    });
+
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+    });
+
+    return res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error during logout' });
+  }
+
+}
 module.exports = { registerUser, loginUser };
