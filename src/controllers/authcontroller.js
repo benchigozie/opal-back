@@ -130,7 +130,7 @@ const loginUser = async (req, res) => {
 
 const logoutUser = async (req, res) => {
   try {
-
+    
     const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({ message: 'Unauthorized' });
@@ -153,4 +153,4 @@ const logoutUser = async (req, res) => {
   }
 
 }
-module.exports = { registerUser, loginUser };
+module.exports = { registerUser, loginUser, logoutUser };
