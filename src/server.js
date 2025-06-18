@@ -25,6 +25,9 @@ app.use(cookieParser());
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
 
+const tokenRoutes = require("./routes/token");
+app.use("/api/token", tokenRoutes);
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT} in ${env} mode`);

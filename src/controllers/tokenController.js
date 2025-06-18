@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken');
+const { generateAccessToken } = require('../utils/jwt');
 
 const refreshAccessToken = async ( req, res ) => {
     try {
-        const { refreshToken } = req.cookies.refreshToken;
-
+        console.log(req.cookies);
+        const { refreshToken } = req.cookies;
+        console.log("Refresh Token:", refreshToken);
         if (!refreshToken) {
             return res.status(401).json({ message: 'No refresh token provided' });
         }
@@ -14,11 +16,15 @@ const refreshAccessToken = async ( req, res ) => {
             return res.status(403).json({ message: 'Invalid refresh token' });
         }
 
-        const accessToken = jwt.sign({ id: decoded.id, role: decoded.role }, process.env.JWT_ACCESS_SECRET, { expiresIn: '15m' });
+        const accessToken = generateAccessToken({ id: decoded.id, role: decoded.role });
 
         res.status(200).json({ accessToken });
 
     } catch (error) {
         res.status(500).json({ message: 'Internal server error' });
     }
+};
+
+module.exports = {
+    refreshAccessToken,
 };
