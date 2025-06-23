@@ -24,9 +24,18 @@ const verifyAccessToken = (token) => {
     }
 };
 
+const generateEmailVerificationToken = (payload) => {
+    return jwt.sign(
+        payload,
+        process.env.JWT_EMAIL_SECRET,
+        { expiresIn: '24h' }
+    );
+};
+
 module.exports = {
     generateAccessToken,
     generateRefreshToken,
     verifyAccessToken,
+    generateEmailVerificationToken,
 }
 

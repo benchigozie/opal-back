@@ -34,4 +34,4 @@ app.listen(PORT, () => {
 });
 
 
-//module.exports = prisma;
+module.exports = app;

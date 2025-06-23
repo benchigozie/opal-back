@@ -10,7 +10,7 @@ const authMiddleware = (req, res, next) => {
     const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
         if (!decoded) {
             return res.status(401).json({ message: 'Invalid token' });
         } //same with this, does this have any use in production?

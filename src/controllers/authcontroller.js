@@ -1,7 +1,8 @@
 const bcrypt = require('bcrypt');
 const prisma = require('../utils/prisma');
+const sendVerificationEmail = require('../utils/sendVerificationEmail');
 const jwt = require('jsonwebtoken');
-const { generateAccessToken, generateRefreshToken, verifyAccessToken } = require('../utils/jwt');
+const { generateAccessToken, generateRefreshToken, verifyAccessToken, generateEmailVerificationToken } = require('../utils/jwt');
 
 
 
@@ -36,40 +37,15 @@ const registerUser = async (req, res) => {
       },
     });
 
-    const accessToken = jwt.sign(
-      { id: newUser.id, email: newUser.email },
-      process.env.JWT_ACCESS_SECRET,
-      { expiresIn: '15m' }
-    );
+    const verificationToken = generateEmailVerificationToken(newUser);
 
-    const refreshToken = jwt.sign(
-      { id: newUser.id },
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: '7d' },
-    );
+    const verificationLink = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`
 
-    await prisma.user.update({
-      where: { id: newUser.id },
-      data: { refreshToken },
-    });
+    await sendVerificationEmail(newUser.email, verificationLink);
+    
 
-    res
-    .cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
-    .json({
-      message: 'User registered successfully',
-      accessToken,
-      user: {
-        id: newUser.id,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        email: newUser.email,
-        role: newUser.role,
-      },
+    res.status(201).json({
+      message: 'User registered successfully, Check your email for verification link',
     });
 
 
@@ -91,6 +67,10 @@ const loginUser = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: "User not found"})
+    }
+
+    if (!user.verified) {
+      return res.status(403).json({ message: 'Please verify your email before logging in' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -128,6 +108,37 @@ const loginUser = async (req, res) => {
   res.status(200).json({ message: "User logged in (placeholder)" });
 };
 
+const verifyEmail = async (req, res) => {
+  const { token } = req.params;
+
+  try {
+
+    const decoded = jwt.verify(token, process.env.JWT_EMAIL_SECRET);
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email: decoded.email },
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (existingUser.verified) {
+      return res.status(400).json({ message: 'Email already verified' });
+    }
+
+    await prisma.user.update({
+      where: { email: decoded.email },
+      data: { verified: true },
+    });
+
+    return res.status(200).json({ message: 'Email successfully verified' });
+  } catch (error) {
+    console.error('Verification error:', error);
+    return res.status(400).json({ message: 'Invalid or expired verification link' });
+  }
+};
+
 const logoutUser = async (req, res) => {
   try {
     
@@ -153,4 +164,4 @@ const logoutUser = async (req, res) => {
   }
 
 }
-module.exports = { registerUser, loginUser, logoutUser };
+module.exports = { registerUser, loginUser, logoutUser, verifyEmail };

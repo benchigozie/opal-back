@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --detectOpenHandles",
     "dev": "NODE_ENV=development nodemon src/server.js",
     "start": "NODE_ENV=production nodemon src/server.js",
     "migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
+    "migrate:test": "dotenv -e .env.test -- npx prisma migrate dev",
     "generate": "npx prisma generate"
   },
   "keywords": [],
@@ -21,6 +22,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^7.0.3",
     "pg": "^8.16.0"
   },
   "devDependencies": {
