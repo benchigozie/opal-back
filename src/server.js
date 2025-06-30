@@ -28,6 +28,9 @@ app.use("/api/auth", authRoutes);
 const tokenRoutes = require("./routes/token");
 app.use("/api/token", tokenRoutes);
 
+const productRoutes = require("./routes/product")
+app.use('/api/products', productRoutes);
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT} in ${env} mode`);
