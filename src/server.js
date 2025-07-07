@@ -31,6 +31,8 @@ app.use("/api/token", tokenRoutes);
 const productRoutes = require("./routes/product")
 app.use('/api/products', productRoutes);
 
+const reviewRoutes = require('./routes/review');
+app.use('/api/reviews', reviewRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT} in ${env} mode`);

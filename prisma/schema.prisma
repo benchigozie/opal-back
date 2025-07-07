@@ -17,10 +17,11 @@ model User {
   email      String   @unique
   firstName  String
   lastName   String
-  password      String
+  password      String?
   refreshToken  String? 
   role         Role     @default(USER)
   verified      Boolean  @default(false)
+  provider  String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -32,6 +33,10 @@ model Product {
   description String
   images      Image[]
   reviews     Review[]
+  stock       Int       @default(0)  
+  category    Category? @relation(fields: [categoryId], references: [id])
+  categoryId  String?
+  amountSold  Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -50,4 +55,10 @@ model Review {
   product   Product  @relation(fields: [productId], references: [id])
   productId String
   createdAt DateTime @default(now())
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  products  Product[]
 }

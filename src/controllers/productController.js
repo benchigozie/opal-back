@@ -1,7 +1,7 @@
 const prisma = require('../utils/prisma');
 
 const createProduct = async (req, res) => {
-    const { name, price, description } = req.body;
+    const { name, price, description, stock, categoryId } = req.body;
 
     const imageUrls = req.files.map(file => file.path);
 
@@ -11,11 +11,13 @@ const createProduct = async (req, res) => {
                 name,
                 price: parseFloat(price),
                 description,
+                stock: parseInt(stock),
+                category: categoryId ? { connect: { id: categoryId } } : undefined,
                 images: {
                     create: imageUrls.map(url => ({ url })),
                 },
             },
-            include: { images: true },
+            include: { images: true, category: true },
         });
 
         res.status(201).json(product);
@@ -24,7 +26,7 @@ const createProduct = async (req, res) => {
     }
 };
 
-const getAllProducts = async (req, res) => {
+const getProducts = async (req, res) => {
     try {
         const products = await prisma.product.findMany({
             include: { images: true },
@@ -59,4 +61,4 @@ const deleteProduct = async (req, res) => {
     }
 };
 
-module.exports = { createProduct, getAllProducts, getProductById, deleteProduct, }
+module.exports = { createProduct, getProducts, getProductById, deleteProduct, }
