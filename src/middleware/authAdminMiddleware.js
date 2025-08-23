@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const authMiddleware = (req, res, next) => {
+const authAdminMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {// does this have any use in production?
@@ -12,12 +12,16 @@ const authMiddleware = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
         if (!decoded) {
-            return res.status(401).json({ message: 'Invalid token' });
+            return res.status(404).json({ message: 'Invalid token' });
         } //same with this, does this have any use in production?
         req.user = {
             id: decoded.id,
             role: decoded.role,
         };
+
+        if (req.user.role !== "ADMIN") {
+            return res.status(403).json({ message: 'Forbidden: Admin access required' });
+        }
 
         next();
     } catch (error) {
@@ -27,4 +31,4 @@ const authMiddleware = (req, res, next) => {
       
 };
 
-module.exports = authMiddleware;
+module.exports = authAdminMiddleware;

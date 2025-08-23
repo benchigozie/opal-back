@@ -8,7 +8,12 @@
     "start": "NODE_ENV=production nodemon src/server.js",
     "migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
     "migrate:test": "dotenv -e .env.test -- npx prisma migrate dev",
-    "generate": "npx prisma generate"
+    "generate": "npx prisma generate",
+    "seed": "npx prisma db seed"
+  },
+  "prisma": {
+    "categorySeed": "node prisma/seeds/categoriesSeed.js",
+    "adminUserSeed": "node prisma/seeds/adminUserSeed.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +21,7 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.9.0",
+    "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.7",

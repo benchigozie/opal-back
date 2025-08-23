@@ -3,7 +3,8 @@ const prisma = require('../utils/prisma');
 const sendVerificationEmail = require('../utils/sendVerificationEmail');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
-const { generateAccessToken, generateRefreshToken, verifyAccessToken, generateEmailVerificationToken } = require('../utils/jwt');
+const axios = require('axios');
+const { generateAccessToken, generateRefreshToken, verifyAccessToken, generateEmailVerificationToken } = require('../utils/jwt'); ////////////check later
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -97,7 +98,8 @@ const loginUser = async (req, res) => {
       accessToken,
       user: {
         id: user.id,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role,
       },
@@ -123,6 +125,7 @@ const googleLogin = async (req, res) => {
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
+    console.log('Google ID token verified successfully');
 
     const payload = ticket.getPayload();
     const { email, name } = payload;
@@ -160,10 +163,24 @@ const googleLogin = async (req, res) => {
           },
         });
       }
+    };
+
+    if (user) {
+      if (user.provider && user.provider !== 'google') {
+        return res.status(400).json({
+          message: `This email is registered via ${user.provider}. Please sign in using that method.`,
+        });
+      }
     }
 
     const token = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
+
+    await prisma.user.update({
+      where: { email },
+      data: { refreshToken },
+    });
+
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -174,11 +191,18 @@ const googleLogin = async (req, res) => {
     return res.status(200).json({
       message: 'Login successful',
       accessToken: token,
-      user,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+      }
     });
 
-  } catch {
-
+  } catch (error) {
+    console.error('[GOOGLE LOGIN ERROR]', error);
+    res.status(401).json({ message: 'Invalid Google token' });
   }
 };
 
