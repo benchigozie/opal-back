@@ -23,9 +23,6 @@ const updateUserCart = async (req, res) => {
     try {
     const userId = parseInt(req.params.userId);
     
-   /* await prisma.cartItem.deleteMany({
-      where: { cart: { userId } },
-    });*/
   
     console.log(`Updating cart for user ID: ${userId}`);
     const { items } = req.body;
