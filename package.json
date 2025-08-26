@@ -10,7 +10,11 @@
     "migrate:test": "dotenv -e .env.test -- npx prisma migrate dev",
     "migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
     "generate": "npx prisma generate",
-    "seed": "npx prisma db seed"
+    "seed:admin:dev": "dotenv -e .env -- node prisma/seeds/adminUserSeed.js",
+    "seed:admin:prod": "dotenv -e .env.production -- node prisma/seeds/adminUserSeed.js",
+    "seed:categories:dev": "dotenv -e .env -- node prisma/seeds/categoriesSeed.js",
+    "seed:categories:prod": "dotenv -e .env.production -- node prisma/seeds/categoriesSeed.js"
+  
   },
   "prisma": {
     "categorySeed": "node prisma/seeds/categoriesSeed.js",

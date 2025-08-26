@@ -1,4 +1,4 @@
-const prisma = require('../utils/prisma');
+const prisma = require('../../utils/prisma');
 
 async function main() {
     const adminEmail = 'bennchigozie@gmail.com';
