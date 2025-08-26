@@ -23,6 +23,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.get("/", (req, res) => {
+    res.send("Opal Spaces server is running!");
+  });
+
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
