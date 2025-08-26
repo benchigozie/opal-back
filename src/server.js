@@ -4,7 +4,8 @@ const dotenv = require("dotenv");
 const path = require("path");
 
 
-const env = process.env.NODE_ENV || "development";
+const env = process.env.NODE_ENV; //|| "development";
+
 dotenv.config({ path: path.resolve(__dirname, `../.env.${env}`) });
 //console.log("Trying to load:", path.resolve(__dirname, `../.env.${env}`));
 //console.log(`Database URL: ${process.env.DB_USER}`);

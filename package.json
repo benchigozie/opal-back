@@ -5,9 +5,10 @@
   "scripts": {
     "test": "jest --detectOpenHandles",
     "dev": "NODE_ENV=development nodemon src/server.js",
-    "start": "NODE_ENV=production nodemon src/server.js",
+    "start": "node src/server.js",
     "migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
     "migrate:test": "dotenv -e .env.test -- npx prisma migrate dev",
+    "migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
     "generate": "npx prisma generate",
     "seed": "npx prisma db seed"
   },
