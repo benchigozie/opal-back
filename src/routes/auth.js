@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { registerUser, loginUser, logoutUser, verifyEmail, googleLogin } = require("../controllers/authcontroller");
+const { registerUser, loginUser, logoutUser, verifyEmail, googleLogin, refreshToken } = require("../controllers/authcontroller");
 const authUserMiddleware = require("../middleware/authUserMiddleware");
 
 
@@ -9,6 +9,7 @@ router.post("/register",  registerUser);
 router.post("/login", loginUser);
 router.post("/logout", authUserMiddleware, logoutUser);
 router.post('/google', googleLogin);
+router.post('/refresh', refreshToken);
 
 router.get('/verify-email/:token', verifyEmail);
 

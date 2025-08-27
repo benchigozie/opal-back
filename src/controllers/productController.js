@@ -53,9 +53,12 @@ const getProducts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    console.log('Page:', page, 'Limit:', limit, 'Skip:', skip);
 
     try {
         const products = await prisma.product.findMany({
+            take: limit,
+            skip: skip,
             select: {
                 id: true,
                 name: true,

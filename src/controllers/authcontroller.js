@@ -237,6 +237,41 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+const refreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "No refresh token provided" });
+    }  
+
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
+      if (err) return res.status(403).json({ message: "Invalid refresh token" });
+
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+      });
+
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      if (user.refreshToken !== refreshToken) {
+        return res.status(403).json({ message: "Token mismatch" });
+      }
+
+      const newAccessToken = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "15m" } 
+      );
+      res.status(200).json({ accessToken: newAccessToken });
+    });
+  } catch (error) {
+    console.error("[REFRESH TOKEN ERROR]", error);
+    res.status(500).json({ message: "Errror refreshing token" });
+  }
+};
+
+
+
 const logoutUser = async (req, res) => {
   try {
 
@@ -262,4 +297,4 @@ const logoutUser = async (req, res) => {
   }
 
 }
-module.exports = { registerUser, loginUser, logoutUser, verifyEmail, googleLogin };
+module.exports = { registerUser, loginUser, logoutUser, verifyEmail, googleLogin, refreshToken };
