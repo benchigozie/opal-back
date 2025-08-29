@@ -14,7 +14,6 @@
     "seed:admin:prod": "dotenv -e .env.production -- node prisma/seeds/adminUserSeed.js",
     "seed:categories:dev": "dotenv -e .env.development -- node prisma/seeds/categoriesSeed.js",
     "seed:categories:prod": "dotenv -e .env.production -- node prisma/seeds/categoriesSeed.js"
-  
   },
   "prisma": {
     "categorySeed": "node prisma/seeds/categoriesSeed.js",
@@ -38,7 +37,8 @@
     "multer": "^2.0.1",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^7.0.3",
-    "pg": "^8.16.0"
+    "pg": "^8.16.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "dotenv-cli": "^8.0.0",

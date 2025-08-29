@@ -20,6 +20,14 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
 model User {
   id         Int      @id @default(autoincrement())
   email      String   @unique
