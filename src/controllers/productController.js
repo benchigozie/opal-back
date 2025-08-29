@@ -54,12 +54,19 @@ const getProducts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    console.log('Page:', page, 'Limit:', limit, 'Skip:', skip);
+    console.log('Page:', page, 'Limit:', limit, 'Skip:', skip, 'Category:', req.query.category);
+    const { category } = req.query;
+
+    const where = {};
+    if (category) {
+      where.category = { name: category };
+    }
 
     try {
         const products = await prisma.product.findMany({
             take: limit,
             skip: skip,
+            where,
             select: {
                 id: true,
                 name: true,
@@ -79,7 +86,7 @@ const getProducts = async (req, res) => {
             },
         });
 
-        const totalProducts = await prisma.product.count();
+        const totalProducts = await prisma.product.count({ where });
 
         console.log(products);
         const productsWithAverageRating = products.map((product) => {

@@ -8,7 +8,7 @@ const env = process.env.NODE_ENV || "development";
 dotenv.config({ path: path.resolve(__dirname, `../.env.${env}`) });
 
 async function main() {
-    const categories = ['furniture', 'lighting', 'decor', 'bathroom'];
+    const categories = ['furniture', 'lighting', 'decor', 'bathroom', 'all'];
   
     for (const name of categories) {
       await prisma.category.upsert({

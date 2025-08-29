@@ -97,4 +97,37 @@ const verifyAndCreateOrder = async (req, res) => {
   };
 };
 
-module.exports = { verifyAndCreateOrder };
+
+const getUsersOrders = async (req, res) => {
+  console.log("Fetching orders for userId:", req.params.userId);
+  const userId = parseInt(req.params.userId);
+
+
+  try {
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: { images: true },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return res.status(200).json({
+      orders,
+    });
+  } catch (error) {
+    console.error("Error fetching user orders:", error);
+    return res.status(500).json({
+      message: "Server error while fetching orders",
+    });
+  }
+};
+
+module.exports = { getUsersOrders };
+module.exports = { verifyAndCreateOrder, getUsersOrders };
