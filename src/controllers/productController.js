@@ -50,16 +50,23 @@ const createProduct = async (req, res) => {
 
 const getProducts = async (req, res) => {
     console.log('Fetching paginated products');
-    
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     console.log('Page:', page, 'Limit:', limit, 'Skip:', skip, 'Category:', req.query.category);
-    const { category } = req.query;
+    const { category, sort } = req.query;
+
+    let orderBy = { createdAt: "desc" };
+
+    if (sort === "oldest") orderBy = { createdAt: "asc" };
+    if (sort === "low-high") orderBy = { price: "asc" };
+    if (sort === "high-low") orderBy = { price: "desc" };
+    if (sort === "popular") orderBy = { amountSold: "desc" };
 
     const where = {};
     if (category) {
-      where.category = { name: category };
+        where.category = { name: category };
     }
 
     try {
@@ -67,6 +74,7 @@ const getProducts = async (req, res) => {
             take: limit,
             skip: skip,
             where,
+            orderBy,
             select: {
                 id: true,
                 name: true,
@@ -122,52 +130,52 @@ const getProducts = async (req, res) => {
 const getFeaturedProducts = async (req, res) => {
     console.log('Fetching featured products');
     try {
-      const products = await prisma.product.findMany({
-        take: 8,
-        orderBy: {
-          amountSold: 'desc',
-        },
-        select: {
-          id: true,
-          name: true,
-          price: true,
-          stock: true,
-          images: {
-            select: { url: true },
-          },
-          reviews: {
-            select: { rating: true },
-          },
-          _count: {
-            select: { reviews: true },
-          },
-          amountSold: true,
-        },
-      });
-  
-      const featuredProducts = products.map((product) => {
-        const ratings = product.reviews.map((review) => review.rating);
-        const averageRating =
-          ratings.reduce((sum, rating) => sum + rating, 0) / (ratings.length || 1);
-  
-        return {
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          description: product.description,
-          images: product.images || [],
-          averageRating: parseFloat(averageRating.toFixed(2)),
-          reviewCount: product._count.reviews,
-        };
-      });
-  
-      res.json({ success: true, products: featuredProducts });
+        const products = await prisma.product.findMany({
+            take: 8,
+            orderBy: {
+                amountSold: 'desc',
+            },
+            select: {
+                id: true,
+                name: true,
+                price: true,
+                stock: true,
+                images: {
+                    select: { url: true },
+                },
+                reviews: {
+                    select: { rating: true },
+                },
+                _count: {
+                    select: { reviews: true },
+                },
+                amountSold: true,
+            },
+        });
+
+        const featuredProducts = products.map((product) => {
+            const ratings = product.reviews.map((review) => review.rating);
+            const averageRating =
+                ratings.reduce((sum, rating) => sum + rating, 0) / (ratings.length || 1);
+
+            return {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                description: product.description,
+                images: product.images || [],
+                averageRating: parseFloat(averageRating.toFixed(2)),
+                reviewCount: product._count.reviews,
+            };
+        });
+
+        res.json({ success: true, products: featuredProducts });
     } catch (error) {
-      console.error('Error fetching featured products:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch featured products' });
+        console.error('Error fetching featured products:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch featured products' });
     }
-  };
-  
+};
+
 
 const getProductById = async (req, res) => {
     const { id } = req.params;
@@ -242,11 +250,11 @@ const deleteProduct = async (req, res) => {
     try {
         const product = await prisma.product.findUnique({
             where: {
-              id: id, // assuming `id` is your primary key
+                id: id, // assuming `id` is your primary key
             },
-          });
+        });
 
-          console.log('Product found:', product);
+        console.log('Product found:', product);
         await prisma.product.delete({ where: { id } });
         console.log('Product deleted successfully');
         res.status(200).json({ message: 'Product deleted' });
