@@ -8,14 +8,28 @@ const { generateAccessToken, generateRefreshToken, verifyAccessToken, generateEm
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+const verifyCaptcha = async (token) => {
+  const secret = process.env.CAPTCHA_SECRET_KEY;
+  const response = await axios.post(
+    `https://www.google.com/recaptcha/api/siteverify?secret=${secret}&response=${token}`
+  );
+  return response.data.success;
+};
+
 const registerUser = async (req, res) => {
-  const { firstName, lastName, email, role, password } = req.body;
+  const { firstName, lastName, email, role, password } = req.body.userInfo;
+  const { captchaToken } = req.body;
 
   console.log(req.body)
 
   if (!firstName || !lastName || !email || !password) {
     return res.status(400).json({ message: 'Please fill in all fields' });
   }
+
+  if (!captchaToken) return res.status(400).json({ message: "Captcha token missing" });
+  const isCaptchaValid = await verifyCaptcha(captchaToken);
+  console.log("isCaptchaValid", isCaptchaValid);
+  if (!isCaptchaValid) return res.status(400).json({ message: "Captcha verification failed" });
 
   try {
     const existingUser = await prisma.user.findUnique({
@@ -62,7 +76,13 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
 
-  const { email, password } = req.body;
+  const { email, password } = req.body.userInfo;
+  const { captchaToken } = req.body;
+
+  if (!captchaToken) return res.status(400).json({ message: "Captcha token missing" });
+  const isCaptchaValid = await verifyCaptcha(captchaToken);
+  console.log("isCaptchaValid", isCaptchaValid);
+  if (!isCaptchaValid) return res.status(400).json({ message: "Captcha verification failed" });
 
   try {
 
