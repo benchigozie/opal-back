@@ -43,7 +43,8 @@ const registerUser = async (req, res) => {
 
     const verificationToken = generateEmailVerificationToken(newUser);
 
-    const verificationLink = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`
+    console.log("this is home url", process.env.HOME_URL)
+    const verificationLink = `${process.env.HOME_URL}/verify-email/${verificationToken}`
 
     await sendVerificationEmail(newUser.email, verificationLink);
 
