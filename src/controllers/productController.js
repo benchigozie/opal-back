@@ -1,12 +1,8 @@
 const prisma = require('../utils/prisma');
 
 const createProduct = async (req, res) => {
-    console.log('Creating product');
     const { name, price, description, stock, category } = req.body;
-    console.log(req.body);
     const imageUrls = req.files.map(file => file.path);
-    console.log('Image URLs:', imageUrls);
-    console.log('Request body:', req.body);
 
     if (!name || !description || !price || !stock || !category) {
         return res.status(400).json({ message: 'Please fill all required fields' });
@@ -49,12 +45,13 @@ const createProduct = async (req, res) => {
 };
 
 const getProducts = async (req, res) => {
-    console.log('Fetching paginated products');
+
+    console.log("Fetching products...");
 
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    console.log('Page:', page, 'Limit:', limit, 'Skip:', skip, 'Category:', req.query.category);
+ 
     const { category, sort } = req.query;
 
     let orderBy = { createdAt: "desc" };
@@ -96,7 +93,6 @@ const getProducts = async (req, res) => {
 
         const totalProducts = await prisma.product.count({ where });
 
-        console.log(products);
         const productsWithAverageRating = products.map((product) => {
             const ratings = product.reviews.map((review) => review.rating);
             const averageRating =
@@ -114,7 +110,7 @@ const getProducts = async (req, res) => {
                 reviewCount: product._count.reviews,
             }
         });
-        console.log(productsWithAverageRating);
+        
         res.json({
             page,
             limit,
@@ -128,7 +124,6 @@ const getProducts = async (req, res) => {
 };
 
 const getFeaturedProducts = async (req, res) => {
-    console.log('Fetching featured products');
     try {
         const products = await prisma.product.findMany({
             take: 8,
@@ -193,15 +188,10 @@ const getProductById = async (req, res) => {
 
 const updateProduct = async (req, res) => {
     const { id } = req.params;
-    console.log('Updating product with ID:', id);
-    console.log('Request body:', req.body);
+  
     const { name, description, price, stock, category } = req.body;
 
-
-
     const imageUrls = req.files.map(file => file.path);
-
-    console.log('Image URLs:', imageUrls);
 
     if (!name || !description || !price || !stock || !category) {
         return res.status(400).json({ message: 'Please fill all required fields' });
@@ -211,10 +201,7 @@ const updateProduct = async (req, res) => {
         where: { name: category }
     });
 
-    console.log('Category record:', categoryRecord);
-
     try {
-        console.log('Updating product in database...');
         const updatedProduct = await prisma.product.update({
             where: { id },
             data: {
@@ -234,7 +221,7 @@ const updateProduct = async (req, res) => {
                 images: true,
             },
         });
-        console.log('Updated product:', updatedProduct);
+      
         return res.status(200).json({ message: 'Product updated successfully' });
     } catch (error) {
         return res.status(500).json({ message: 'Something went wrong while updating the product. Try again later' });
@@ -242,6 +229,93 @@ const updateProduct = async (req, res) => {
 
 
 }
+
+const searchProducts = async (req, res) => {
+
+    console.log("Searching products...");
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const { q, sort } = req.query;
+
+    let orderBy = { createdAt: "desc" };
+
+    if (sort === "oldest") orderBy = { createdAt: "asc" };
+    if (sort === "low-high") orderBy = { price: "asc" };
+    if (sort === "high-low") orderBy = { price: "desc" };
+    if (sort === "popular") orderBy = { amountSold: "desc" };
+
+    if (!q || q.trim() === "") {
+        return res.status(400).json({ success: false, message: "Search query is required" });
+    }
+    try {
+        const where = {
+            OR: [
+                { name: { contains: q, mode: "insensitive" } },
+                { description: { contains: q, mode: "insensitive" } },
+                { category: { name: { contains: q, mode: "insensitive" } } },
+            ],
+        };
+
+        const products = await prisma.product.findMany({
+            take: limit,
+            skip,
+            where,
+            orderBy,
+            select: {
+                id: true,
+                name: true,
+                price: true,
+                stock: true,
+                description: true,
+                images: {
+                    select: { url: true },
+                },
+                reviews: {
+                    select: { rating: true },
+                },
+                _count: {
+                    select: { reviews: true },
+                },
+                category: true,
+            },
+        });
+
+        const totalProducts = await prisma.product.count({ where });
+
+        const productsWithAverageRating = products.map((product) => {
+            const ratings = product.reviews.map((review) => review.rating);
+            const averageRating =
+                ratings.reduce((sum, rating) => sum + rating, 0) / (ratings.length || 1);
+
+            return {
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                description: product.description,
+                stock: product.stock,
+                images: product.images || null,
+                averageRating: parseFloat(averageRating.toFixed(2)),
+                category: product.category,
+                reviewCount: product._count.reviews,
+            };
+        });
+
+        res.json({
+            success: true,
+            query: q,
+            page,
+            limit,
+            totalProducts,
+            totalPages: Math.ceil(totalProducts / limit),
+            products: productsWithAverageRating,
+        });
+    } catch (error) {
+        console.error("Error searching products:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
 
 const deleteProduct = async (req, res) => {
     console.log('Deleting product');
@@ -264,4 +338,4 @@ const deleteProduct = async (req, res) => {
     }
 };
 
-module.exports = { createProduct, getProducts, getProductById, deleteProduct, updateProduct, getFeaturedProducts }
+module.exports = { createProduct, getProducts, getProductById, deleteProduct, updateProduct, getFeaturedProducts, searchProducts }
