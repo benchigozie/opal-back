@@ -26,6 +26,8 @@ const addReview = async (req, res) => {
       const reviews = await prisma.review.findMany({
         where: { productId },
         orderBy: { createdAt: 'desc' },
+        take: 10,
+        
       });
   
       res.json(reviews);

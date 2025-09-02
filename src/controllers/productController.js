@@ -177,10 +177,25 @@ const getProductById = async (req, res) => {
     try {
         const product = await prisma.product.findUnique({
             where: { id },
-            include: { images: true },
+            include: { 
+                images: true,
+                _count: { select: { reviews: true } },
+                reviews: { select: { rating: true } } },
         });
         if (!product) return res.status(404).json({ error: 'Product not found' });
-        res.json(product);
+
+        const totalReviews = product._count.reviews;
+        const averageRating =
+          totalReviews > 0
+            ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+            : 0;
+
+
+        res.json({
+            ...product,
+            averageRating,
+            totalReviews,
+    });
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch product' });
     }
@@ -324,7 +339,7 @@ const deleteProduct = async (req, res) => {
     try {
         const product = await prisma.product.findUnique({
             where: {
-                id: id, // assuming `id` is your primary key
+                id: id, 
             },
         });
 
