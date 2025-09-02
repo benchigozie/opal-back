@@ -12,13 +12,6 @@ enum Role {
   ADMIN
 }
 
-enum OrderStatus {
-  PENDING
-  PAID
-  SHIPPED
-  DELIVERED
-  CANCELLED
-}
 
 enum OrderStatus {
   PENDING
