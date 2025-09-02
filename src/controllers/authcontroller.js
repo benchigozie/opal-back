@@ -131,7 +131,6 @@ const loginUser = async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
-  res.status(200).json({ message: "User logged in (placeholder)" });
 };
 
 const googleLogin = async (req, res) => {
@@ -264,9 +263,12 @@ const refreshToken = async (req, res) => {
     if (!refreshToken) {
       return res.status(401).json({ message: "No refresh token provided" });
     }  
-
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
-      if (err) return res.status(403).json({ message: "Invalid refresh token" });
+    console.log("in refresh token function");
+    jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, async (err, decoded) => {
+      if (err) {
+        console.error("JWT Verify Error:", err.message, err.name);
+        return res.status(403).json({ message: "Invalid refresh token" })
+      };
 
       const user = await prisma.user.findUnique({
         where: { id: decoded.id },
@@ -274,13 +276,13 @@ const refreshToken = async (req, res) => {
 
       if (!user) return res.status(404).json({ message: "User not found" });
 
-      if (user.refreshToken !== refreshToken) {
+     if (user.refreshToken !== refreshToken) {
         return res.status(403).json({ message: "Token mismatch" });
       }
 
       const newAccessToken = jwt.sign(
         { id: user.id, role: user.role },
-        process.env.ACCESS_TOKEN_SECRET,
+        process.env.JWT_ACCESS_SECRET,
         { expiresIn: "15m" } 
       );
       res.status(200).json({ accessToken: newAccessToken });
