@@ -89,7 +89,12 @@ const verifyAndCreateOrder = async (req, res) => {
       order,
     });
   } catch (error) {
-    console.error("Payment verification failed:", error.message);
+    console.error("Payment verification failed:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data, 
+      headers: error.response?.headers,
+    });
     return res.status(500).json({
       success: false,
       message: "Server error while verifying payment",
