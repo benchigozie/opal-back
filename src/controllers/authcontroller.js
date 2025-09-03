@@ -263,6 +263,7 @@ const verifyEmail = async (req, res) => {
 };
 
 const refreshToken = async (req, res) => {
+  console.log("in refresh token controller");
   try {
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
