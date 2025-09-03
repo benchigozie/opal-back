@@ -107,6 +107,11 @@ const loginUser = async (req, res) => {
     const accessToken = generateAccessToken({ id: user.id, role: user.role });
     const refreshToken = generateRefreshToken({ id: user.id, role: user.role });
 
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken },
+    });
+
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
