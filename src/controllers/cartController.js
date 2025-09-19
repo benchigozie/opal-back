@@ -1,16 +1,15 @@
 const prisma = require('../utils/prisma');
 
 const getUserCart = async (req, res) => {
-  console.log("Fetching user cart");
+
   try {
    
     const userId = parseInt(req.params.userId, 10);
-    console.log(`Fetching cart for user ID: ${userId}`);
     const cart = await prisma.cart.findUnique({
       where: { userId },
       include: { items: true },
     });
-    console.log("This is cart",cart)
+    
     res.status(200).json({ items: cart ? cart.items : [] });
   } catch (err) {
     console.error(err);
@@ -19,14 +18,11 @@ const getUserCart = async (req, res) => {
 };
 
 const updateUserCart = async (req, res) => {
-  console.log("Updating user cart");
+  
     try {
     const userId = parseInt(req.params.userId);
     
-  
-    console.log(`Updating cart for user ID: ${userId}`);
     const { items } = req.body;
-    console.log("Request body:", req.body);
 
     await prisma.cart.update({
       where: { userId },
@@ -46,10 +42,8 @@ const updateUserCart = async (req, res) => {
 };
 
 const mergeCart = async (req, res) => {
-  console.log("in mergeCart function");
+
   try {
-    console.log("Merging cart for user");
-    console.log("Request body:", req.body);
     const userId = parseInt(req.params.userId, 10);
     const { guestItems } = req.body;
 

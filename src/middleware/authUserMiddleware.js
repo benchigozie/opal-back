@@ -2,13 +2,13 @@ const jwt = require('jsonwebtoken');
 
 const authUserMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
-    console.log("this is authHeader:", authHeader);
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {// does this have any use in production?
         return res.status(401).json({ message: 'No token provided' });
     }
 
     const token = authHeader.split(' ')[1];
-    console.log("this is token:", token);
+    
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);

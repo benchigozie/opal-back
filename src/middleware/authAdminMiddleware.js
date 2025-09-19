@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken');
 
 const authAdminMiddleware = (req, res, next) => {
-    const authHeader = req.headers.authorization;
 
+    const authHeader = req.headers.authorization;
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {// does this have any use in production?
         return res.status(401).json({ message: 'No token provided' });
     }

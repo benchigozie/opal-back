@@ -2,6 +2,8 @@ const { v4: uuidv4 } = require("uuid");
 const id = uuidv4();
 const axios = require("axios");
 const prisma = require('../utils/prisma');
+const { OrderStatus } = require("@prisma/client");
+
 
 
 
@@ -103,6 +105,125 @@ const verifyAndCreateOrder = async (req, res) => {
 };
 
 
+const getAllOrders = async (req, res) => {
+
+  const validStatuses = Object.values(OrderStatus);
+
+  const { page, limit, status } = req.query;
+
+  const pageInt = parseInt(page, 10);
+  const limitInt = parseInt(limit, 10);
+
+  const filters = {};
+  if (status && status !== "ALL") {
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`
+      });
+    }
+    filters.status = status;
+  }
+
+  try {
+    const orders = await prisma.order.findMany({
+      where: filters,
+      skip: (pageInt - 1) * limitInt,
+      take: limitInt,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        items: {
+          include: {
+            product: {
+              include: { images: true },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    console.log("this is orders:", orders)
+    return res.status(200).json({
+      orders,
+    });
+  } catch (error) {
+    console.error("Error fetching all orders:", error);
+    return res.status(500).json({
+      message: "Server error while fetching orders",
+    });
+  }
+};
+
+const getOrderById = async (req, res) => {
+  const { orderId } = req.params; // UUID string
+
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId }, // use string directly
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        items: {
+          include: {
+            product: { include: { images: true } },
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    return res.status(200).json({ order });
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    return res.status(500).json({ message: "Server error while fetching order" });
+  }
+};
+
+const updateOrderStatus = async (req, res) => {
+  const { orderId } = req.params;
+  const { status } = req.body;
+
+  try {
+
+    if (!Object.values(OrderStatus).includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Must be one of: ${Object.values(OrderStatus).join(", ")}`
+      });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: { status }, 
+      include: {
+        user: { select: { id: true, email: true, firstName: true, lastName: true } },
+        items: { include: { product: { include: { images: true } } } },
+      },
+    });
+
+    return res.json({ order: updatedOrder });
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    return res.status(500).json({ message: "Failed to update order" });
+  }
+};
+
 const getUsersOrders = async (req, res) => {
   console.log("Fetching orders for userId:", req.params.userId);
   const userId = parseInt(req.params.userId);
@@ -134,5 +255,5 @@ const getUsersOrders = async (req, res) => {
   }
 };
 
-module.exports = { getUsersOrders };
-module.exports = { verifyAndCreateOrder, getUsersOrders };
+
+module.exports = { verifyAndCreateOrder, getUsersOrders, getAllOrders, getOrderById, updateOrderStatus };
