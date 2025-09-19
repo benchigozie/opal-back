@@ -48,6 +48,9 @@ app.use('/api/cart', cartRoutes);
 const orderRoutes = require('./routes/order');
 app.use('/api/orders', orderRoutes);
 
+const employeeRoutes = require('./routes/employee');
+app.use('/api/orders', employeeRoutes);
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT} in ${env} mode`);
 });
