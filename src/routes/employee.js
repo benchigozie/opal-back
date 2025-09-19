@@ -11,5 +11,5 @@ router.put("/promote/:id", authAdminMiddleware, promoteUser);
 router.put("/demote/:id", authAdminMiddleware, demoteUser);
 router.get("/all", authAdminMiddleware, getAllUsers);
 router.delete("/delete/:id", authAdminMiddleware, deleteUser);
-
+  
 module.exports = router;

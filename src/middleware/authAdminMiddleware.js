@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const authAdminMiddleware = (req, res, next) => {
 
     const authHeader = req.headers.authorization;
+    console.log("Authorization Header:", authHeader);
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ message: 'No token provided' });
@@ -20,9 +21,11 @@ const authAdminMiddleware = (req, res, next) => {
             role: decoded.role,
         };
 
+        console.log("User role from token:", req.user.role);
         if (req.user.role !== "ADMIN" && req.user.role !== "EMPLOYEE") {
             return res.status(403).json({ message: 'Forbidden: Admin or Employee access required' });
         }
+
 
         if (req.user.role === "EMPLOYEE" && req.path.startsWith("/api/users")) {
             return res.status(403).json({ message: "Forbidden: Only Admins can access the users route" });
