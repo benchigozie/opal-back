@@ -51,6 +51,9 @@ app.use('/api/orders', orderRoutes);
 const employeeRoutes = require('./routes/employee');
 app.use('/api/users', employeeRoutes);
 
+const analyticsRoutes = require("./routes/analytics");
+app.use("/api/analytics", analyticsRoutes);
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT} in ${env} mode`);
 });
