@@ -5,6 +5,8 @@ const refreshAccessToken = async ( req, res ) => {
     try {
        
         const { refreshToken } = req.cookies;
+
+        console.log("Cookies received in refresh token controller:", req.cookies);
         
         if (!refreshToken) {
             return res.status(401).json({ message: 'No refresh token provided' });

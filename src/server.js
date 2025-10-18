@@ -17,6 +17,8 @@ const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+console.log("Client URL in server js:", process.env.CLIENT_URL);
+
 app.use(cors({
     origin: process.env.CLIENT_URL,
    credentials: true,
